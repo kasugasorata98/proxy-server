@@ -1,7 +1,12 @@
 import express, { Request, Response, NextFunction } from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
+const https = require('node:https');
 import dotenv from "dotenv";
 dotenv.config();
+import fs from 'fs';
+var privateKey = fs.readFileSync('/etc/letsencrypt/live/kasugasorata.monster/privkey.pem', 'utf8');
+var certificate = fs.readFileSync('/etc/letsencrypt/live/kasugasorata.monster/cert.pem', 'utf8');
+var ca = fs.readFileSync('/etc/letsencrypt/live/kasugasorata.monster/chain.pem', 'utf8');
 
 const app = express();
 const port = process.env.PORT;
@@ -55,6 +60,13 @@ app.use(
   }
 );
 
-app.listen(port, () => {
-  console.log("Proxy listening to port: " + port);
+const credentials = {
+  key: privateKey,
+  cert: certificate,
+  ca: ca,
+}
+
+https.createServer(credentials, app).listen(port, () => {
+  console.log("Proxy listening to port: " + port)
 });
+
